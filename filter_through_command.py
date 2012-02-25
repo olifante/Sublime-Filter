@@ -1,8 +1,32 @@
-# based on http://pastie.org/private/bclbdgxzbkb1gs2jfqzehg
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+## based on http://pastie.org/private/bclbdgxzbkb1gs2jfqzehg
 
 import sublime
 import sublime_plugin
 import subprocess
+
+class PromptRunExternalCommand(sublime_plugin.WindowCommand):
+    """
+    To create a ⌥⌘R or ctrl-alt-R shortcut to "Filter through command" that
+    prompts for a command, insert this somewhere in your keymap file:
+
+    {
+        "keys": ["alt+super+r"],
+        "command": "prompt_run_external"
+    }
+    """
+    def run(self):
+        self.window.show_input_panel("Filter through command:", "", self.on_done, None, None)
+        pass
+
+    def on_done(self, text):
+        try:
+            if self.window.active_view():
+                self.window.active_view().run_command("run_external", {"command": text} )
+        except ValueError, e:
+            sublime.status_message(e)
 
 class RunExternalCommand(sublime_plugin.TextCommand):
     """
@@ -14,14 +38,17 @@ class RunExternalCommand(sublime_plugin.TextCommand):
 
     view.run_command('run_external', dict(command="sort"))
 
-    You could add a "filter through sort" shortcut by inserting something like
-    this in your user's keymap file:
+    You could add filter shortcuts for specific commands by inserting
+    something similar to the following in your user's keymap file:
 
     {
         "keys": ["alt+super+s"],
         "command": "run_external",
-        "args": {"command": "sort"}
+        "args": {"command": "sort -u"}
     }
+
+    This creates a ⌥⌘S or ctrl-alt-S shortcut that lets you sort
+    your file with the Unix "sort -u" command
     """
 
     def run(self, edit, command):
@@ -34,11 +61,11 @@ class RunExternalCommand(sublime_plugin.TextCommand):
 
         p = subprocess.Popen(
             command,
-            shell=True,
-            bufsize=-1,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            stdin=subprocess.PIPE)
+            shell   = True,
+            bufsize = -1,
+            stdout  = subprocess.PIPE,
+            stderr  = subprocess.PIPE,
+            stdin   = subprocess.PIPE)
 
         output, error = p.communicate(self.view.substr(region).encode('utf-8'))
 
