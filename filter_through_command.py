@@ -1,4 +1,4 @@
-# saved from: http://pastie.org/private/bclbdgxzbkb1gs2jfqzehg
+# based on http://pastie.org/private/bclbdgxzbkb1gs2jfqzehg
 
 import sublime
 import sublime_plugin
@@ -9,13 +9,15 @@ class RunExternalCommand(sublime_plugin.TextCommand):
     Runs an external command with the selected text,
     which will then be replaced by the command output.
 
-    If you open the console (cmd-` or ctrl-`) and enter
-    >>> view.run_command('run_external', dict(args="sort"))
+    If you open the console (cmd-` or ctrl-`) and enter this:
+    
+    view.run_command('run_external', dict(command="sort"))
+    
     the selected text (or whole file if no selection)
     will be sorted using the "sort" command.
     """
 
-    def run(self, edit, args):
+    def run(self, edit, command):
         if self.view.sel()[0].empty():
             # nothing selected: process the entire file
             region = sublime.Region(0L, self.view.size())
@@ -24,7 +26,7 @@ class RunExternalCommand(sublime_plugin.TextCommand):
             region = self.view.line(self.view.sel()[0])
 
         p = subprocess.Popen(
-            args,
+            command,
             shell=True,
             bufsize=-1,
             stdout=subprocess.PIPE,
